@@ -1,0 +1,8 @@
+# 音频素材与构建产物不入库（版权 + 体积原因）
+lab/audio/*
+!lab/audio/.gitkeep
+products/hearing-test.html
+
+__pycache__/
+*.pyc
+.DS_Store
