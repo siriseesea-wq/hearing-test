@@ -105,10 +105,8 @@ def main() -> int:
         "clips": manifest,
     }
     tpl = tpl.replace(
-        "</body>",
-        '<script id="artifact-data" type="application/json">'
-        + json.dumps(artifact_data, ensure_ascii=False).replace("<", "\\u003c")
-        + "</script>\n</body>",
+        "__ARTIFACT_DATA__",
+        json.dumps(artifact_data, ensure_ascii=False).replace("<", "\\u003c"),
     )
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

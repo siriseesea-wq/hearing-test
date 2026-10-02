@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>个人听力测试</title>
+<style>
+  :root {
+    --bg: #eef1f5;
+    --bg-deep: #e4e9ef;
+    --panel: #ffffff;
+    --panel-2: #f7f9fb;
+    --ink: #14202e;
+    --ink-2: #55677c;
+    --ink-3: #8496a8;
+    --line: #d5dee6;
+    --line-soft: #e6ecf1;
+    --accent: #1a6e8e;
+    --accent-2: #2f9bc4;
+    --accent-ink: #ffffff;
+    --accent-soft: #e3f1f7;
+    --warn: #9a5f10;
+    --warn-bg: #fbf1de;
+    --ok: #1f6b48;
+    --ok-bg: #e6f2ea;
+    --err: #94312c;
+    --err-bg: #f9e8e6;
+    --shadow: 0 1px 2px rgba(18, 32, 48, .06), 0 8px 28px rgba(18, 32, 48, .05);
+    --shadow-lift: 0 2px 4px rgba(18, 32, 48, .08), 0 14px 36px rgba(18, 32, 48, .10);
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c1218;
+      --bg-deep: #080d12;
+      --panel: #151d26;
+      --panel-2: #1b2530;
+      --ink: #e8eef4;
+      --ink-2: #9db0c1;
+      --ink-3: #6b7c8d;
+      --line: #26323e;
+      --line-soft: #1e2833;
+      --accent: #55b2d4;
+      --accent-2: #7fd0ea;
+      --accent-ink: #071017;
+      --accent-soft: #17303c;
+      --warn: #e2b166;
+      --warn-bg: #2a2214;
+      --ok: #7fceaa;
+      --ok-bg: #142820;
+      --err: #f0a19a;
+      --err-bg: #2c1614;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px rgba(0, 0, 0, .28);
+      --shadow-lift: 0 2px 6px rgba(0, 0, 0, .5), 0 18px 46px rgba(0, 0, 0, .4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c1218;
+    --bg-deep: #080d12;
+    --panel: #151d26;
+    --panel-2: #1b2530;
+    --ink: #e8eef4;
+    --ink-2: #9db0c1;
+    --ink-3: #6b7c8d;
+    --line: #26323e;
+    --line-soft: #1e2833;
+    --accent: #55b2d4;
+    --accent-2: #7fd0ea;
+    --accent-ink: #071017;
+    --accent-soft: #17303c;
+    --warn: #e2b166;
+    --warn-bg: #2a2214;
+    --ok: #7fceaa;
+    --ok-bg: #142820;
+    --err: #f0a19a;
+    --err-bg: #2c1614;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px rgba(0, 0, 0, .28);
+    --shadow-lift: 0 2px 6px rgba(0, 0, 0, .5), 0 18px 46px rgba(0, 0, 0, .4);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg-deep); }
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%) fixed;
+    color: var(--ink);
+    font: 15px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: .01em;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 22px 80px; }
+
+  /* ---------- 顶部 ---------- */
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; margin: 6px 0 4px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 40px; height: 40px; border-radius: 11px; flex: 0 0 auto;
+    background: linear-gradient(145deg, var(--accent-2), var(--accent));
+    box-shadow: var(--shadow);
+    display: grid; place-items: center;
+  }
+  .logo svg { display: block; }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.25; }
+  .brand-name { font-size: 13px; letter-spacing: .12em; color: var(--ink-3); text-transform: uppercase; }
+  h1 { font-size: 24px; line-height: 1.25; margin: 0; letter-spacing: .01em; }
+  .sub { color: var(--ink-2); margin: 6px 0 0; }
+  .chips { display: flex; gap: 6px; }
+
+  .chip {
+    font-size: 11.5px; letter-spacing: .04em; color: var(--ink-2);
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 3px 10px; border-radius: 999px;
+  }
+
+  /* ---------- 通用卡片 ---------- */
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 22px 24px; margin: 16px 0;
+    box-shadow: var(--shadow);
+  }
+  .card:hover { box-shadow: var(--shadow-lift); }
+  h2 {
+    font-size: 18px; margin: 0 0 12px; letter-spacing: .01em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2::before {
+    content: ""; width: 4px; height: 18px; border-radius: 2px;
+    background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  }
+  h3 { font-size: 14px; margin: 20px 0 8px; color: var(--ink-2); letter-spacing: .04em; }
+  p { max-width: 66ch; }
+  b { font-weight: 650; }
+
+  .note {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 13px 16px; margin: 14px 0;
+    background: var(--panel-2); color: var(--ink-2);
+  }
+  .note b { color: var(--ink); }
+  .warn-box { border-left-color: var(--warn); background: var(--warn-bg); color: var(--ink); }
+
+  /* ---------- 按钮 ---------- */
+  button {
+    font: inherit; font-weight: 560; color: var(--accent-ink);
+    background: linear-gradient(180deg, var(--accent-2), var(--accent));
+    border: 1px solid transparent; border-radius: 9px;
+    padding: 9px 18px; cursor: pointer;
+    box-shadow: 0 1px 2px rgba(18, 42, 58, .12);
+    transition: transform .06s ease, filter .12s ease, box-shadow .12s ease;
+  }
+  button:hover { filter: brightness(1.07); box-shadow: var(--shadow-lift); }
+  button:active { transform: translateY(1px) scale(.99); }
+  button:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; transform: none; }
+  button.ghost {
+    background: var(--panel); color: var(--ink);
+    border-color: var(--line); box-shadow: none;
+  }
+  button.ghost:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+  button.big { font-size: 16px; padding: 12px 28px; }
+
+  /* ---------- 表单 ---------- */
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
+  .row.wrap > * { min-width: 0; }
+  label.opt {
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer; color: var(--ink);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 13px;
+    transition: border-color .12s ease, background .12s ease;
+  }
+  label.opt:hover { border-color: var(--accent); }
+  label.opt input { accent-color: var(--accent); width: 15px; height: 15px; }
+  label.opt:has(input:checked) {
+    border-color: var(--accent); background: var(--accent-soft); color: var(--ink);
+    font-weight: 600;
+  }
+  input[type="range"] {
+    width: 100%; accent-color: var(--accent); height: 22px;
+  }
+  input[type="text"], input[type="range"] { outline: none; }
+  .field {
+    flex: 1 1 240px; min-width: 200px;
+    padding: 10px 13px; font: inherit; color: var(--ink);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 9px;
+    transition: border-color .12s ease;
+  }
+  .field:focus { border-color: var(--accent); }
+
+  /* ---------- 表格与数字 ---------- */
+  .mono, .num { font-variant-numeric: tabular-nums; font-family: ui-monospace, "SF Mono", Consolas, monospace; }
+  table { border-collapse: separate; border-spacing: 0; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td {
+    border-bottom: 1px solid var(--line-soft);
+    padding: 9px 13px; text-align: left;
+  }
+  thead th {
+    background: var(--panel-2); border-bottom: 1px solid var(--line);
+    font-weight: 620; font-size: 12.5px; letter-spacing: .05em; color: var(--ink-2);
+    text-transform: uppercase;
+  }
+  tbody tr:hover { background: var(--panel-2); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.r, th.r { text-align: right; }
+
+  /* ---------- 徽标 ---------- */
+  .tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; padding: 2.5px 11px;
+    border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2);
+    background: var(--panel-2); white-space: nowrap;
+  }
+  .tag.ok { color: var(--ok); border-color: var(--ok); background: var(--ok-bg); }
+  .tag.err { color: var(--err); border-color: var(--err); background: var(--err-bg); }
+  .tag.warn { color: var(--warn); border-color: var(--warn); background: var(--warn-bg); }
+  .tag.accent { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  /* ---------- 进度条与 KPI ---------- */
+  .meter-wrap {
+    height: 10px; background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 999px; overflow: hidden;
+  }
+  .meter {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    transition: width .1s linear;
+    border-radius: 999px;
+  }
+  .kpi {
+    font-size: 30px; line-height: 1.15;
+    font-variant-numeric: tabular-nums; font-weight: 640;
+    letter-spacing: -.01em;
+  }
+  .kpi .unit { font-size: 14px; color: var(--ink-3); font-weight: 500; margin-left: 3px; }
+  .kpi-box {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* ---------- 画布 ---------- */
+  #scovis, #thresholdChart, #reportChart {
+    width: 100%; display: block;
+    background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 10px;
+  }
+  #thresholdChart, #reportChart { height: 280px; }
+
+  /* ---------- 标签页 ---------- */
+  .tabbar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin: 22px 0 18px;
+  }
+  .tabbar button {
+    background: var(--panel); color: var(--ink-2);
+    border: 1px solid var(--line); border-radius: 11px;
+    padding: 11px 8px; font-size: 13.5px;
+    box-shadow: none;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .tabbar button .step {
+    font-size: 10.5px; letter-spacing: .12em; opacity: .75;
+  }
+  .tabbar button.active {
+    background: linear-gradient(180deg, var(--accent-2), var(--accent));
+    color: var(--accent-ink); border-color: transparent;
+    font-weight: 620; box-shadow: var(--shadow-lift);
+  }
+  .tabbar button.active .step { opacity: .85; }
+
+  /* ---------- 布局辅助 ---------- */
+  .panel-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .hidden { display: none !important; }
+  .status-line { color: var(--ink-2); min-height: 1.7em; font-size: 13.5px; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 5px 18px; }
+  .kv dt { color: var(--ink-2); font-size: 13.5px; }
+  .kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+  ul.tight { margin: 8px 0; padding-left: 20px; }
+  ul.tight li { margin: 3px 0; }
+
+  .big-stat-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .big-stat-row .kpi-box { flex: 1 1 180px; }
+
+  /* 试听按钮组 */
+  .sample-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 9px; }
+  .sample-grid button {
+    background: var(--panel-2); color: var(--ink);
+    border: 1px solid var(--line); box-shadow: none;
+    padding: 10px 12px; font-size: 13.5px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .sample-grid button:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* 盲测槽位 */
+  .slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  .slot {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 11px; padding: 16px; text-align: center;
+  }
+  .slot .slot-label {
+    font-size: 21px; font-weight: 640; letter-spacing: .06em;
+    color: var(--ink-3); margin-bottom: 10px;
+  }
+  .slot button { width: 100%; }
+
+  footer {
+    margin-top: 52px; padding-top: 22px; border-top: 1px solid var(--line);
+    color: var(--ink-2); font-size: 13px; max-width: 68ch;
+    line-height: 1.75;
+  }
+  footer code {
+    font-size: 12px; word-break: break-all;
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 6px; padding: 1px 6px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h2.5l2-6 3 13 2.5-9 2 5H21"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">HEARING TEST</div>
+        <h1>个人听力测试</h1>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip">本地 · 离线</span>
+      <span class="chip">单文件</span>
+      <button class="ghost" id="themeBtn" type="button">切换主题</button>
+    </div>
+  </div>
+  <p class="sub">频段听阈 × 码率盲测 · 六段试音素材内嵌 · 结果保存在你自己浏览器里</p>
+
+  <div class="note warn-box">
+    <b>请先读：测试前的几件事</b>
+    <ul class="tight">
+      <li>请用<b>耳机</b>测试，先到「0 · 校准与音量」把系统音量调到你平时听歌的舒适位置，测试中不要动音量。</li>
+      <li>这是<b>个人对照工具</b>，不是医用听力计：它无法控制你耳机的频响与声压级，结果只用于你自己前后对比。</li>
+      <li>测试中随时可以停；任何一步不舒服就停止——音量由你控制，若听阈测试某一步突然变响，立即按「停止」。</li>
+      <li>结果默认<b>只存在本机浏览器</b>（localStorage），点「导出 JSON」才会生成文件。</li>
+    </ul>
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <button type="button" data-tab="setup" class="active"><span class="step">STEP 0</span><span>校准与音量</span></button>
+    <button type="button" data-tab="threshold"><span class="step">STEP 1</span><span>频段听阈</span></button>
+    <button type="button" data-tab="blind"><span class="step">STEP 2</span><span>码率盲测</span></button>
+    <button type="button" data-tab="report"><span class="step">STEP 3</span><span>结果与导出</span></button>
+  </div>
+
+  <!-- ============ TAB 0: SETUP ============ -->
+  <section class="card" id="tab-setup">
+    <h2>0 · 校准与音量</h2>
+    <p>播放下面这段<b>校准音</b>（1 kHz 正弦波，注意这不是最舒服的频率，只是确认链路通了、把音量定好）：
+      建议把系统/播放器音量调到<b>「中等偏小、听着舒适」</b>，全程锁死不再改。</p>
+    <div class="row">
+      <button type="button" id="calPlay">播放校准音</button>
+      <button type="button" class="ghost" id="calStop">停止</button>
+      <span class="status-line" id="calStatus"></span>
+    </div>
+
+    <h3>校准音相对电平 <span class="mono" id="calGainVal">-20.0</span> dB</h3>
+    <input type="range" id="calGain" min="-60" max="0" step="1" value="-20">
+    <p class="sub">校准音只用于定音量；下面的听阈测试与它以同一数字电平发出，所以校准时定好的音量就是测试时的参考音量。</p>
+
+    <h3>试听素材</h3>
+    <p class="sub">点开任意一段，确认耳机左右声道正常、声音不破。这段试听<b>不影响</b>后面盲测的计分（盲测用的片段与试听素材来自同一打包数据）。</p>
+    <div class="sample-grid" id="sampleButtons"></div>
+    <div class="row">
+      <button type="button" class="ghost" id="sampleStop">停止试听</button>
+      <span class="status-line" id="sampleStatus"></span>
+    </div>
+
+    <h3>设备信息（可选，便于以后对比）</h3>
+    <div class="row wrap">
+      <input id="devName" class="field" placeholder="耳机/设备型号，如 HD650 + 独立声卡">
+    </div>
+    <div class="row">
+      <button type="button" id="saveSetup">保存设置</button>
+      <span class="status-line" id="setupStatus"></span>
+    </div>
+  </section>
+
+  <!-- ============ TAB 1: THRESHOLD ============ -->
+  <section class="card hidden" id="tab-threshold">
+    <div class="panel-title">
+      <h2>1 · 频段听阈</h2>
+      <span class="tag accent" id="thProgress">0 / 20</span>
+    </div>
+    <p>每个频点你会听到若干个<b>1.2 秒</b>的短音，从很轻到稍响，每次间隔约 1.6 秒。
+      听到某个短音就点「听到」——听到越轻的短音，说明你这个频段越灵敏。每档最多 6 级；6 级都没听到就记为「未听到」（阈值记最轻一级，标注为估计值）。</p>
+    <p class="sub">测试顺序会在 250 Hz – 12.5 kHz 之间<b>打乱</b>，防习惯性作答。中途可暂停。</p>
+
+    <div class="row">
+      <button type="button" class="big" id="thStart">开始听阈测试</button>
+      <button type="button" class="ghost" id="thPause">暂停</button>
+      <button type="button" class="ghost" id="thAbort">放弃本轮</button>
+      <span class="status-line" id="thStatus"></span>
+    </div>
+
+    <div class="row wrap" id="thLive" style="gap:18px">
+      <div class="kpi-box" style="flex:0 0 auto">
+        <div class="sub">当前频点</div>
+        <div class="kpi" id="thFreq">—</div>
+      </div>
+      <div class="kpi-box" style="flex:0 0 auto">
+        <div class="sub">当前档位（越左越轻）</div>
+        <div class="kpi" id="thStep">—</div>
+      </div>
+      <div class="kpi-box" style="flex:1 1 200px">
+        <div class="sub">播放中</div>
+        <div class="meter-wrap" style="margin-top:12px"><div class="meter" id="thMeter"></div></div>
+      </div>
+    </div>
+    <div class="row">
+      <button type="button" class="big" id="thHeard">听到 →</button>
+      <span class="status-line" id="thHint">按空格键 = 「听到」</span>
+    </div>
+
+    <canvas id="thresholdChart"></canvas>
+    <p class="sub">图：横轴为频率（对数刻度），纵轴为可听到的最轻相对电平（dB）。点越低＝越灵敏。「未听到」的频点画在最上缘并标注。</p>
+  </section>
+
+  <!-- ============ TAB 2: BLIND ============ -->
+  <section class="card hidden" id="tab-blind">
+    <div class="panel-title">
+      <h2>2 · 码率盲测</h2>
+      <span class="tag accent" id="blProgress">0 / 4</span>
+    </div>
+    <p>同一段音乐的<b>三个版本</b>（128 kbps / 320 kbps / 无损）随机排列。先逐个试听，然后判断：
+      <b>哪个是无损（音质最好）版本？哪个是 128 kbps（音质最差）版本？</b> 顺序每次随机，你听不出就猜。</p>
+    <p class="sub">四轮：渡口 × 2 轮 + 加州旅馆 × 2 轮。三段素材音量已统一，<b>不要靠响度判断</b>，听细节（齿音、混响、低频）。</p>
+
+    <div class="row">
+      <button type="button" class="big" id="blStart">开始盲测</button>
+      <button type="button" class="ghost" id="blAbort">放弃本轮</button>
+      <span class="status-line" id="blStatus"></span>
+    </div>
+
+    <div id="blRound" class="hidden">
+      <h3 id="blTitle">—</h3>
+      <div class="slot-grid" id="blSlots"></div>
+      <div class="row">
+        <button type="button" class="ghost" id="blStop">停止播放</button>
+        <span class="status-line" id="blPlayStatus"></span>
+      </div>
+
+      <div class="card" style="margin:14px 0">
+        <h3>你的判断</h3>
+        <div class="row wrap">
+          <span class="sub" style="min-width:9em">无损（最好）：</span>
+          <label class="opt"><input type="radio" name="blBest" value="A"> A</label>
+          <label class="opt"><input type="radio" name="blBest" value="B"> B</label>
+          <label class="opt"><input type="radio" name="blBest" value="C"> C</label>
+        </div>
+        <div class="row wrap">
+          <span class="sub" style="min-width:9em">128 kbps（最差）：</span>
+          <label class="opt"><input type="radio" name="blWorst" value="A"> A</label>
+          <label class="opt"><input type="radio" name="blWorst" value="B"> B</label>
+          <label class="opt"><input type="radio" name="blWorst" value="C"> C</label>
+        </div>
+        <div class="row">
+          <button type="button" id="blSubmit">提交本轮</button>
+          <span class="status-line" id="blSubmitStatus"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="blResult" class="hidden card">
+      <h3>本轮揭晓</h3>
+      <div id="blReveal"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: REPORT ============ -->
+  <section class="card hidden" id="tab-report">
+    <h2>3 · 结果与导出</h2>
+    <div class="row">
+      <button type="button" id="expBtn">导出 JSON</button>
+      <button type="button" class="ghost" id="printBtn">打印 / 存 PDF</button>
+      <button type="button" class="ghost" id="clearBtn">清空本机记录</button>
+      <span class="status-line" id="reportStatus"></span>
+    </div>
+
+    <h3>频段听阈</h3>
+    <div class="row wrap">
+      <span class="tag warn">阈值为相对电平（dB re 0 dBFS），非 SPL，不能与医用听力图直接比较</span>
+    </div>
+    <canvas id="reportChart"></canvas>
+    <div style="overflow-x:auto">
+      <table id="thTable"></table>
+    </div>
+
+    <h3>码率盲测成绩</h3>
+    <div class="big-stat-row">
+      <div class="kpi-box">
+        <div class="sub">无损辨别正确率</div>
+        <div class="kpi" id="kpiBest">—</div>
+      </div>
+      <div class="kpi-box">
+        <div class="sub">128k 识别正确率</div>
+        <div class="kpi" id="kpiWorst">—</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="blTable"></table>
+    </div>
+    <div class="note" id="blComment"></div>
+
+    <h3>本次测试的元信息</h3>
+    <dl class="kv" id="metaList"></dl>
+
+    <h3>这份结果证明了什么、不证明了什么</h3>
+    <ul class="tight sub">
+      <li><b>证明了</b>：在你当时这台设备 + 这副耳机 + 这个音量设定下，你对各频段轻声的主观可听程度，以及你对同曲三档编码的主观区分能力。</li>
+      <li><b>不证明</b>：你的耳朵在医学意义上的听力是否正常（耳机频响未校准、声压级未知）；也不证明某个码率「在科学上更好」——盲测测的是<b>你</b>在这套设备上听不听得出。</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p><b>来历</b>：本页由 <code id="genName">lab/scripts/build_hearing_test.py</code> 生成于 <span id="genTime">—</span>，
+    素材为你提供的六首曲目（蔡琴《渡口》、Eagles《Hotel California》，各三档编码）的 30 秒裁剪片段，音频以 base64 内嵌、运行时零网络请求。</p>
+    <p><b>素材指纹</b>（SHA-256 前 16 位，用于确认用的是哪一版文件）：</p>
+    <div class="mono" id="srcHashes" style="font-size:12px"></div>
+    <p><b>反馈</b>：把「导出 JSON」得到的文件发回给生成它的人，即可精确对上你测的是哪一版素材、哪一次结果。</p>
+  </footer>
+</main>
+
+<script>
+"use strict";
+/* ============================================================
+   数据与素材（由构建脚本注入）
+   ============================================================ */
+const MANIFEST = __MANIFEST_JSON__;
+
+const AUDIO = {
+  "du-128": "__AUDIO_DU_128__",
+  "du-320": "__AUDIO_DU_320__",
+  "du-flac": "__AUDIO_DU_FLAC__",
+  "h-128": "__AUDIO_H_128__",
+  "h-320": "__AUDIO_H_320__",
+  "h-flac": "__AUDIO_H_FLAC__"
+};
+
+/* ============================================================
+   主题
+   ============================================================ */
+const themeBtn = document.getElementById("themeBtn");
+function applyTheme(t) {
+  if (t === "light" || t === "dark") {
+    document.documentElement.setAttribute("data-theme", t);
+    localStorage.setItem("ht.theme", t);
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+    localStorage.removeItem("ht.theme");
+  }
+}
+applyTheme(localStorage.getItem("ht.theme"));
+themeBtn.addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const sysDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const next = cur ? (cur === "dark" ? "light" : "dark") : (sysDark ? "light" : "dark");
+  applyTheme(next);
+  renderThresholdChart();
+  renderReport();
+});
+
+/* ============================================================
+   标签页
+   ============================================================ */
+document.getElementById("tabbar").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-tab]");
+  if (!btn) return;
+  document.querySelectorAll(".tabbar button").forEach(b => b.classList.toggle("active", b === btn));
+  ["setup", "threshold", "blind", "report"].forEach(id => {
+    document.getElementById("tab-" + id).classList.toggle("hidden", id !== btn.dataset.tab);
+  });
+  if (btn.dataset.tab === "report") renderReport();
+  if (btn.dataset.tab === "threshold") renderThresholdChart();
+});
+
+/* ============================================================
+   音频引擎
+   ============================================================ */
+let ac = null;
+function ensureCtx() {
+  if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (ac.state === "suspended") ac.resume();
+  return ac;
+}
+const audioCache = {};
+async function getBuffer(id) {
+  if (audioCache[id]) return audioCache[id];
+  const res = await fetch(AUDIO[id]);
+  const buf = await res.arrayBuffer();
+  const decoded = await ensureCtx().decodeAudioData(buf);
+  audioCache[id] = decoded;
+  return decoded;
+}
+
+let masterGain = null;
+function master() {
+  if (!masterGain) {
+    masterGain = ensureCtx().createGain();
+    masterGain.gain.value = 1;
+    masterGain.connect(ensureCtx().destination);
+  }
+  return masterGain;
+}
+
+let currentNodes = [];
+function stopAll() {
+  currentNodes.forEach(n => { try { n.stop(0); } catch (e) {} });
+  currentNodes = [];
+}
+function playBufferSource(buf, { loop = false, when = 0, offset = 0, duration } = {}) {
+  const ctx = ensureCtx();
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = loop;
+  src.connect(master());
+  if (duration != null) src.start(ctx.currentTime + when, offset, duration);
+  else src.start(ctx.currentTime + when, offset);
+  currentNodes.push(src);
+  return src;
+}
+
+/* 校准音 */
+let calOsc = null;
+const calStatus = document.getElementById("calStatus");
+const calGainSlider = document.getElementById("calGain");
+const calGainVal = document.getElementById("calGainVal");
+calGainSlider.addEventListener("input", () => {
+  calGainVal.textContent = Number(calGainSlider.value).toFixed(1);
+  if (calOsc) calOsc.gainNode.gain.value = dbToLin(Number(calGainSlider.value));
+});
+document.getElementById("calPlay").addEventListener("click", () => {
+  stopCal();
+  const ctx = ensureCtx();
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = 1000;
+  g.gain.value = dbToLin(Number(calGainSlider.value));
+  osc.connect(g); g.connect(master());
+  osc.start();
+  calOsc = { osc, gainNode: g };
+  calStatus.textContent = "1 kHz 正弦波播放中…";
+});
+function stopCal() {
+  if (calOsc) { try { calOsc.osc.stop(); } catch (e) {} calOsc = null; }
+  calStatus.textContent = "";
+}
+document.getElementById("calStop").addEventListener("click", stopCal);
+
+/* 试听 */
+const sampleButtons = document.getElementById("sampleButtons");
+const sampleStatus = document.getElementById("sampleStatus");
+MANIFEST.clips.forEach(c => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "ghost";
+  b.innerHTML = "";
+  const icon = document.createElement("span");
+  icon.textContent = "▶";
+  const label = document.createElement("span");
+  label.textContent = c.label;
+  b.appendChild(icon); b.appendChild(label);
+  b.addEventListener("click", async () => {
+    stopAll();
+    try {
+      const buf = await getBuffer(c.id);
+      playBufferSource(buf);
+      sampleStatus.textContent = "试听中：" + c.label;
+    } catch (e) {
+      sampleStatus.textContent = "播放失败：" + e.message;
+    }
+  });
+  sampleButtons.appendChild(b);
+});
+document.getElementById("sampleStop").addEventListener("click", () => {
+  stopAll(); sampleStatus.textContent = "已停止";
+});
+
+/* 设置 */
+const devName = document.getElementById("devName");
+const setupStatus = document.getElementById("setupStatus");
+devName.value = localStorage.getItem("ht.device") || "";
+document.getElementById("saveSetup").addEventListener("click", () => {
+  localStorage.setItem("ht.device", devName.value.trim());
+  setupStatus.textContent = "已保存（本机浏览器）";
+});
+
+/* ============================================================
+   工具
+   ============================================================ */
+function dbToLin(db) { return Math.pow(10, db / 20); }
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function nowStamp() {
+  return new Date().toISOString().replace("T", " ").slice(0, 16);
+}
+
+/* ============================================================
+   听阈测试
+   ============================================================ */
+const TH_FREQS = [250, 500, 1000, 2000, 4000, 8000, 12500];
+const TH_STEPS = [-54, -48, -42, -36, -30, -24]; // dB re 0 dBFS，越负越轻
+const TH_TONE = 1.2, TH_GAP = 0.4, TH_STEP_GAP = 1.6;
+
+let thState = null;
+const thStatus = document.getElementById("thStatus");
+const thFreqEl = document.getElementById("thFreq");
+const thStepEl = document.getElementById("thStep");
+const thMeter = document.getElementById("thMeter");
+const thProgress = document.getElementById("thProgress");
+
+document.getElementById("thStart").addEventListener("click", startThreshold);
+document.getElementById("thAbort").addEventListener("click", () => {
+  if (thState) { thState.running = false; clearTimeout(thState.timer); }
+  stopAll();
+  thStatus.textContent = "已放弃本轮（已有结果保留）";
+  renderThresholdChart();
+});
+document.getElementById("thPause").addEventListener("click", () => {
+  if (!thState || !thState.running) return;
+  thState.running = false;
+  clearTimeout(thState.timer);
+  stopAll();
+  thStatus.textContent = "已暂停，点「开始」继续（会从当前频点重来）";
+});
+document.getElementById("thHeard").addEventListener("click", onThHeard);
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && thState && thState.running) {
+    e.preventDefault();
+    onThHeard();
+  }
+});
+
+function startThreshold() {
+  if (thState && thState.running) return;
+  ensureCtx();
+  if (!(thState && thState.idx < thState.queue.length && thState.results.length > 0)) {
+    thState = {
+      queue: shuffle(TH_FREQS),
+      idx: 0,
+      stepIdx: 0,
+      results: [],
+      running: true,
+      timer: null
+    };
+  }
+  thState.running = true;
+  thStatus.textContent = "测试进行中：听到短音就点「听到」或按空格";
+  runThTone();
+}
+
+function runThTone() {
+  const st = thState;
+  if (!st || !st.running) return;
+  if (st.idx >= st.queue.length) {
+    st.running = false;
+    thStatus.textContent = "听阈测试完成，可在「3 · 结果」查看曲线";
+    thProgress.textContent = st.results.length + " / " + TH_FREQS.length;
+    stopAll();
+    renderThresholdChart();
+    persist();
+    return;
+  }
+  const freq = st.queue[st.idx];
+  const db = TH_STEPS[st.stepIdx];
+  thFreqEl.textContent = freq >= 1000 ? (freq / 1000) + " kHz" : freq + " Hz";
+  thStepEl.textContent = db + " dB";
+
+  const ctx = ensureCtx();
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, ctx.currentTime);
+  g.gain.linearRampToValueAtTime(dbToLin(db), ctx.currentTime + 0.05);
+  g.gain.setValueAtTime(dbToLin(db), ctx.currentTime + TH_TONE - 0.05);
+  g.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + TH_TONE);
+  osc.connect(g); g.connect(master());
+  osc.start();
+  osc.stop(ctx.currentTime + TH_TONE + 0.05);
+  currentNodes.push(osc);
+
+  const t0 = performance.now();
+  const total = TH_TONE * 1000;
+  (function meterFrame() {
+    const el = performance.now() - t0;
+    thMeter.style.width = Math.min(100, (el / total) * 100) + "%";
+    if (el < total && st.running) requestAnimationFrame(meterFrame);
+    else thMeter.style.width = "0%";
+  })();
+
+  st.timer = setTimeout(() => {
+    if (!st.running) return;
+    st.stepIdx++;
+    if (st.stepIdx >= TH_STEPS.length) {
+      st.results.push({ freq, threshold_db: TH_STEPS[TH_STEPS.length - 1], heard: false });
+      st.idx++;
+      st.stepIdx = 0;
+      thProgress.textContent = st.results.length + " / " + TH_FREQS.length;
+      st.timer = setTimeout(() => runThTone(), TH_GAP * 1000);
+    } else {
+      st.timer = setTimeout(() => runThTone(), TH_STEP_GAP * 1000);
+    }
+  }, (TH_TONE + TH_STEP_GAP) * 1000);
+}
+
+function onThHeard() {
+  const st = thState;
+  if (!st || !st.running) return;
+  clearTimeout(st.timer);
+  const freq = st.queue[st.idx];
+  const db = TH_STEPS[st.stepIdx];
+  st.results.push({ freq, threshold_db: db, heard: true });
+  st.idx++;
+  st.stepIdx = 0;
+  thProgress.textContent = st.results.length + " / " + TH_FREQS.length;
+  renderThresholdChart();
+  persist();
+  st.timer = setTimeout(() => runThTone(), TH_GAP * 1000);
+}
+
+/* ============================================================
+   码率盲测
+   ============================================================ */
+const BL_ROUNDS = [
+  { track: "du", title: "渡口 · 蔡琴" },
+  { track: "du", title: "渡口 · 蔡琴" },
+  { track: "h", title: "Hotel California · Eagles" },
+  { track: "h", title: "Hotel California · Eagles" }
+];
+const SLOT_LABELS = ["A", "B", "C"];
+
+let blState = null;
+const blStatus = document.getElementById("blStatus");
+const blProgress = document.getElementById("blProgress");
+const blRoundEl = document.getElementById("blRound");
+const blSlots = document.getElementById("blSlots");
+const blTitle = document.getElementById("blTitle");
+const blPlayStatus = document.getElementById("blPlayStatus");
+const blResult = document.getElementById("blResult");
+const blReveal = document.getElementById("blReveal");
+
+document.getElementById("blStart").addEventListener("click", startBlind);
+document.getElementById("blAbort").addEventListener("click", () => {
+  stopAll();
+  if (blState) blState.running = false;
+  blRoundEl.classList.add("hidden");
+  blStatus.textContent = "已放弃本轮（已有结果保留）";
+});
+document.getElementById("blStop").addEventListener("click", () => {
+  stopAll(); blPlayStatus.textContent = "已停止";
+});
+document.getElementById("blSubmit").addEventListener("click", submitBlindRound);
+
+function startBlind() {
+  ensureCtx();
+  blState = { roundIdx: 0, results: [], running: true };
+  blResult.classList.add("hidden");
+  loadBlindRound();
+}
+
+function loadBlindRound() {
+  const st = blState;
+  if (!st || st.roundIdx >= BL_ROUNDS.length) {
+    finishBlind();
+    return;
+  }
+  const def = BL_ROUNDS[st.roundIdx];
+  st.order = shuffle(["flac", "128", "320"].map(q => def.track + "-" + q));
+  blTitle.textContent = "第 " + (st.roundIdx + 1) + " / " + BL_ROUNDS.length + " 轮 · " + def.title;
+  blProgress.textContent = st.roundIdx + " / " + BL_ROUNDS.length;
+  blRoundEl.classList.remove("hidden");
+  blPlayStatus.textContent = "";
+  blStatus.textContent = "先逐个试听，再作答";
+  document.querySelectorAll('input[name="blBest"], input[name="blWorst"]').forEach(r => r.checked = false);
+
+  blSlots.innerHTML = "";
+  st.order.forEach((id, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "slot";
+    const label = document.createElement("div");
+    label.className = "slot-label";
+    label.textContent = SLOT_LABELS[i];
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = "▶ 播放 " + SLOT_LABELS[i];
+    b.addEventListener("click", async () => {
+      stopAll();
+      try {
+        const buf = await getBuffer(id);
+        playBufferSource(buf);
+        blPlayStatus.textContent = "播放中：片段 " + SLOT_LABELS[i] + "（可反复听）";
+      } catch (e) {
+        blPlayStatus.textContent = "播放失败：" + e.message;
+      }
+    });
+    wrap.appendChild(label);
+    wrap.appendChild(b);
+    blSlots.appendChild(wrap);
+  });
+}
+
+function submitBlindRound() {
+  const st = blState;
+  if (!st) return;
+  const best = document.querySelector('input[name="blBest"]:checked');
+  const worst = document.querySelector('input[name="blWorst"]:checked');
+  if (!best || !worst) {
+    document.getElementById("blSubmitStatus").textContent = "请选完两个判断再提交";
+    return;
+  }
+  if (best.value === worst.value) {
+    document.getElementById("blSubmitStatus").textContent = "「最好」和「最差」不能选同一个片段";
+    return;
+  }
+  stopAll();
+  const truthBest = st.order.findIndex(id => id.endsWith("flac"));
+  const truthWorst = st.order.findIndex(id => id.endsWith("128"));
+  const bestIdx = SLOT_LABELS.indexOf(best.value);
+  const worstIdx = SLOT_LABELS.indexOf(worst.value);
+  st.results.push({
+    round: st.roundIdx + 1,
+    title: BL_ROUNDS[st.roundIdx].title,
+    order: st.order.slice(),
+    guess_best: bestIdx,
+    guess_worst: worstIdx,
+    correct_best: bestIdx === truthBest,
+    correct_worst: worstIdx === truthWorst
+  });
+
+  blReveal.innerHTML = "";
+  const tbl = document.createElement("table");
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["片段", "真实身份", "你的判断"].forEach(t => {
+    const th = document.createElement("th");
+    th.textContent = t;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  tbl.appendChild(thead);
+  const tbody = document.createElement("tbody");
+  st.order.forEach((id, i) => {
+    const real = id.endsWith("flac") ? "无损" : (id.endsWith("320") ? "320 kbps" : "128 kbps");
+    const guessTxt = (i === bestIdx ? "你选：无损" : "") +
+      (i === worstIdx ? (i === bestIdx ? " / " : "") + "你选：128k" : "") || "—";
+    const tr = document.createElement("tr");
+    [[SLOT_LABELS[i], ""], [real, ""], [guessTxt, "r"]].forEach(([t, cls]) => {
+      const td = document.createElement("td");
+      td.textContent = t;
+      if (cls) td.className = cls;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  blReveal.appendChild(tbl);
+  const p = document.createElement("p");
+  p.innerHTML = "本轮：<b>" + (bestIdx === truthBest ? "无损 ✓" : "无损 ✗") + "</b> · <b>" +
+    (worstIdx === truthWorst ? "128k ✓" : "128k ✗") + "</b>";
+  blReveal.appendChild(p);
+  blResult.classList.remove("hidden");
+  blStatus.textContent = "已提交，可继续下一轮";
+  document.getElementById("blSubmitStatus").textContent = "";
+  persist();
+
+  const nextBtn = document.createElement("button");
+  nextBtn.type = "button";
+  nextBtn.textContent = st.roundIdx + 1 < BL_ROUNDS.length ? "下一轮" : "看总成绩";
+  nextBtn.addEventListener("click", () => {
+    st.roundIdx++;
+    loadBlindRound();
+    if (st.roundIdx >= BL_ROUNDS.length) finishBlind();
+  });
+  blReveal.appendChild(nextBtn);
+}
+
+function finishBlind() {
+  blRoundEl.classList.add("hidden");
+  blStatus.textContent = "盲测完成，可在「3 · 结果」查看成绩";
+  blProgress.textContent = (blState ? blState.results.length : 0) + " / " + BL_ROUNDS.length;
+  renderReport();
+  persist();
+}
+
+/* ============================================================
+   存储与报告
+   ============================================================ */
+function collect() {
+  return {
+    version: 1,
+    generated_at: nowStamp(),
+    device: devName.value.trim(),
+    manifest_sha: MANIFEST.clips.map(c => c.id + ":" + c.sha256).join(","),
+    threshold: thState ? thState.results : [],
+    blind: blState ? blState.results : []
+  };
+}
+function persist() {
+  try { localStorage.setItem("ht.results", JSON.stringify(collect())); } catch (e) {}
+}
+
+function loadStored() {
+  try {
+    const raw = localStorage.getItem("ht.results");
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function renderThresholdChart() {
+  const results = thState ? thState.results : (loadStored() ? loadStored().threshold : []);
+  drawThresholdChart(document.getElementById("thresholdChart"), results);
+  drawThresholdChart(document.getElementById("reportChart"), results);
+}
+
+function drawThresholdChart(canvas, results) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 760, h = canvas.clientHeight || 280;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const style = getComputedStyle(document.documentElement);
+  const ink2 = style.getPropertyValue("--ink-2").trim();
+  const ink3 = style.getPropertyValue("--ink-3").trim();
+  const line = style.getPropertyValue("--line-soft").trim();
+  const accent = style.getPropertyValue("--accent").trim();
+  const accent2 = style.getPropertyValue("--accent-2").trim();
+  const warn = style.getPropertyValue("--warn").trim();
+
+  const padL = 58, padR = 18, padT = 22, padB = 42;
+  const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
+  const fMin = 250, fMax = 12500;
+  const dbMin = -60, dbMax = -18;
+  const fx = f => x0 + (Math.log10(f) - Math.log10(fMin)) / (Math.log10(fMax) - Math.log10(fMin)) * (x1 - x0);
+  const dy = db => y0 + (db - dbMin) / (dbMax - dbMin) * (y1 - y0);
+
+  ctx.font = "11.5px " + style.getPropertyValue("--ink-2");
+  ctx.fillStyle = ink2;
+  ctx.strokeStyle = line;
+  ctx.lineWidth = 1;
+  for (let db = -60; db <= -18; db += 6) {
+    const y = dy(db);
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    ctx.fillStyle = ink3;
+    ctx.fillText(db + " dB", 12, y + 4);
+    ctx.fillStyle = ink2;
+  }
+  TH_FREQS.forEach(f => {
+    const x = fx(f);
+    ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+    ctx.fillStyle = ink3;
+    ctx.fillText(f >= 1000 ? (f / 1000) + "k" : String(f), x - 11, y1 + 20);
+    ctx.fillStyle = ink2;
+  });
+  ctx.fillText("Hz", x1 - 16, y1 + 36);
+
+  if (!results.length) {
+    ctx.fillStyle = ink3;
+    ctx.font = "13px sans-serif";
+    ctx.fillText("（尚无听阈数据）", x0 + 16, (y0 + y1) / 2);
+    return;
+  }
+  const byFreq = {};
+  results.forEach(r => { byFreq[r.freq] = r; });
+
+  const pts = TH_FREQS.filter(f => byFreq[f]).map(f => ({ x: fx(f), y: dy(byFreq[f].threshold_db), f }));
+  if (pts.length > 1) {
+    const grad = ctx.createLinearGradient(x0, 0, x1, 0);
+    grad.addColorStop(0, accent2);
+    grad.addColorStop(1, accent);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+    ctx.stroke();
+    // area fill
+    ctx.globalAlpha = .10;
+    ctx.lineTo(pts[pts.length - 1].x, y1);
+    ctx.lineTo(pts[0].x, y1);
+    ctx.closePath();
+    ctx.fillStyle = accent;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  TH_FREQS.forEach(f => {
+    const r = byFreq[f];
+    if (!r) return;
+    const x = fx(f), y = dy(r.threshold_db);
+    ctx.beginPath();
+    ctx.arc(x, y, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = r.heard ? accent : warn;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = style.getPropertyValue("--panel").trim();
+    ctx.stroke();
+    if (!r.heard) {
+      ctx.fillStyle = warn;
+      ctx.font = "10.5px sans-serif";
+      ctx.fillText("未听到", x - 19, y - 11);
+    }
+  });
+}
+
+function renderReport() {
+  renderThresholdChart();
+  const data = loadStored() || collect();
+
+  const thTable = document.getElementById("thTable");
+  thTable.innerHTML = "";
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["频率", "阈值 (dB)", "判定"].forEach(t => {
+    const th = document.createElement("th"); th.textContent = t; headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  thTable.appendChild(thead);
+  const tbody = document.createElement("tbody");
+  if (data.threshold.length === 0) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3; td.textContent = "尚无数据——到「1 · 频段听阈」做一轮";
+    tr.appendChild(td); tbody.appendChild(tr);
+  } else {
+    data.threshold.slice().sort((a, b) => a.freq - b.freq).forEach(r => {
+      const tr = document.createElement("tr");
+      const c1 = document.createElement("td");
+      c1.textContent = r.freq >= 1000 ? (r.freq / 1000) + " kHz" : r.freq + " Hz";
+      const c2 = document.createElement("td"); c2.className = "r"; c2.textContent = r.threshold_db;
+      const c3 = document.createElement("td"); c3.className = "r";
+      const tag = document.createElement("span");
+      tag.className = "tag " + (r.heard ? "ok" : "warn");
+      tag.textContent = r.heard ? "听到" : "未听到(估计)";
+      c3.appendChild(tag);
+      tr.appendChild(c1); tr.appendChild(c2); tr.appendChild(c3);
+      tbody.appendChild(tr);
+    });
+  }
+  thTable.appendChild(tbody);
+
+  const blTable = document.getElementById("blTable");
+  blTable.innerHTML = "";
+  const hthead = document.createElement("thead");
+  const hrow = document.createElement("tr");
+  ["轮次", "曲目", "顺序 A/B/C", "无损判断", "128k 判断"].forEach(t => {
+    const th = document.createElement("th"); th.textContent = t; hrow.appendChild(th);
+  });
+  hthead.appendChild(hrow);
+  blTable.appendChild(hthead);
+  const btbody = document.createElement("tbody");
+  const bl = data.blind || [];
+  if (!bl.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 5; td.textContent = "尚无数据——到「2 · 码率盲测」做一轮";
+    tr.appendChild(td); btbody.appendChild(tr);
+  }
+  let okBest = 0, okWorst = 0;
+  bl.forEach(r => {
+    const tr = document.createElement("tr");
+    const orderTxt = r.order.map((id, i) =>
+      SLOT_LABELS[i] + "=" + (id.endsWith("flac") ? "无损" : id.endsWith("320") ? "320k" : "128k")
+    ).join(" ");
+    const cells = [
+      String(r.round),
+      r.title,
+      orderTxt,
+      (r.correct_best ? "✓" : "✗"),
+      (r.correct_worst ? "✓" : "✗")
+    ];
+    cells.forEach((t, i) => {
+      const td = document.createElement("td");
+      td.textContent = t;
+      if (i >= 3) {
+        td.className = "r";
+        td.style.color = t === "✓" ? "var(--ok)" : "var(--err)";
+      }
+      tr.appendChild(td);
+    });
+    btbody.appendChild(tr);
+    if (r.correct_best) okBest++;
+    if (r.correct_worst) okWorst++;
+  });
+  blTable.appendChild(btbody);
+  document.getElementById("kpiBest").textContent = bl.length ? okBest + " / " + bl.length : "—";
+  document.getElementById("kpiWorst").textContent = bl.length ? okWorst + " / " + bl.length : "—";
+
+  const comment = document.getElementById("blComment");
+  if (!bl.length) {
+    comment.textContent = "";
+  } else if (okBest + okWorst >= bl.length * 1.5) {
+    comment.textContent = "在这套设备上你对音质差异相当敏感：能稳定把无损从两档 mp3 里挑出来。";
+  } else if (okBest + okWorst >= bl.length) {
+    comment.textContent = "部分能听出差异：可能与曲目片段、耳机或音量有关，可换安静环境再测一轮对比。";
+  } else {
+    comment.textContent = "这几轮基本听不出差异——这在 30 秒短片段 + 普通耳机上很常见，不代表你的听力有问题，只说明这套链路上差异不明显。";
+  }
+
+  const meta = document.getElementById("metaList");
+  meta.innerHTML = "";
+  const kv = [
+    ["生成时间", MANIFEST.generated_at],
+    ["测试时间", data.generated_at || "—"],
+    ["设备备注", data.device || "（未填）"],
+    ["素材版本", MANIFEST.clips.map(c => c.id + " " + c.sha256).join(" · ")]
+  ];
+  kv.forEach(([k, v]) => {
+    const dt = document.createElement("dt"); dt.textContent = k;
+    const dd = document.createElement("dd"); dd.textContent = v;
+    meta.appendChild(dt); meta.appendChild(dd);
+  });
+}
+
+document.getElementById("expBtn").addEventListener("click", () => {
+  const data = loadStored() || collect();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "hearing-test-result-" + Date.now() + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  document.getElementById("reportStatus").textContent = "已导出 JSON";
+});
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+document.getElementById("clearBtn").addEventListener("click", () => {
+  if (!confirm("确定清空本机保存的测试记录？此操作不可撤销。")) return;
+  localStorage.removeItem("ht.results");
+  thState = null; blState = null;
+  renderReport();
+  document.getElementById("reportStatus").textContent = "已清空";
+});
+
+document.getElementById("genTime").textContent = MANIFEST.generated_at;
+document.getElementById("srcHashes").textContent =
+  Object.entries(MANIFEST.source_sha256_16).map(([k, v]) => k + " " + v).join(" · ");
+
+renderThresholdChart();
+renderReport();
+window.addEventListener("resize", () => renderThresholdChart());
+</script>
+<script id="artifact-data" type="application/json">__ARTIFACT_DATA__</script>
+</body>
+</html>
