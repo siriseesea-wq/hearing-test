@@ -308,6 +308,68 @@
   }
   .slot button { width: 100%; }
 
+  /* 盲测槽位 · 播放中脉冲 */
+  .slot.playing {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow);
+  }
+  .slot.playing .slot-label { color: var(--accent); }
+  .slot .eq {
+    display: flex; align-items: flex-end; justify-content: center;
+    gap: 3px; height: 0; overflow: hidden; margin: 0 auto;
+    transition: height .18s ease, margin .18s ease;
+  }
+  .slot.playing .eq { height: 22px; margin: 12px auto 2px; }
+  .slot .eq i {
+    width: 4px; height: 6px; border-radius: 2px;
+    background: var(--accent); opacity: .85;
+    animation: eqbar 900ms ease-in-out infinite;
+  }
+  .slot .eq i:nth-child(2) { animation-delay: 150ms; }
+  .slot .eq i:nth-child(3) { animation-delay: 300ms; }
+  .slot .eq i:nth-child(4) { animation-delay: 200ms; }
+  .slot .eq i:nth-child(5) { animation-delay: 80ms; }
+  @keyframes eqbar {
+    0%, 100% { height: 5px; }
+    50% { height: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slot .eq i { animation: none; height: 12px; }
+  }
+
+  /* 盲测轮次进度条 */
+  .rounds {
+    display: flex; align-items: center; gap: 6px;
+    margin: 14px 0 4px; flex-wrap: wrap;
+  }
+  .rounds .r {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12.5px; color: var(--ink-3);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 4px 12px 4px 6px;
+  }
+  .rounds .r .dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    display: grid; place-items: center; flex: 0 0 auto;
+    font-size: 11px; font-weight: 640;
+    background: var(--panel); border: 1px solid var(--line); color: var(--ink-3);
+  }
+  .rounds .r.active {
+    border-color: var(--accent); color: var(--ink);
+    background: var(--accent-soft);
+  }
+  .rounds .r.active .dot {
+    background: var(--accent); border-color: transparent; color: var(--accent-ink);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .rounds .r.done .dot {
+    background: var(--ok); border-color: transparent; color: var(--accent-ink);
+  }
+  .rounds .r.miss .dot {
+    background: var(--err); border-color: transparent; color: var(--accent-ink);
+  }
+  .rounds .r .mark { font-size: 11px; letter-spacing: .02em; }
+
   footer {
     margin-top: 52px; padding-top: 22px; border-top: 1px solid var(--line);
     color: var(--ink-2); font-size: 13px; max-width: 68ch;
@@ -450,6 +512,7 @@
 
     <div id="blRound" class="hidden">
       <h3 id="blTitle">—</h3>
+      <div class="rounds" id="blRounds"></div>
       <div class="slot-grid" id="blSlots"></div>
       <div class="row">
         <button type="button" class="ghost" id="blStop">停止播放</button>
@@ -862,6 +925,39 @@ const blTitle = document.getElementById("blTitle");
 const blPlayStatus = document.getElementById("blPlayStatus");
 const blResult = document.getElementById("blResult");
 const blReveal = document.getElementById("blReveal");
+const blRounds = document.getElementById("blRounds");
+
+function markPlaying(idx) {
+  [...blSlots.children].forEach((el, i) => el.classList.toggle("playing", i === idx));
+}
+
+function renderRounds() {
+  const st = blState;
+  blRounds.innerHTML = "";
+  BL_ROUNDS.forEach((def, i) => {
+    const r = st && st.results[i];
+    const cls = ["r"];
+    let dotTxt = String(i + 1), markTxt = def.title;
+    if (r) {
+      const both = r.correct_best && r.correct_worst;
+      cls.push(r.correct_best || r.correct_worst ? "done" : "miss");
+      dotTxt = (r.correct_best ? "✓" : "✗");
+      markTxt = (r.correct_best ? "无损✓" : "无损✗") + " · " + (r.correct_worst ? "128✓" : "128✗");
+    } else if (st && i === st.roundIdx) {
+      cls.push("active");
+    }
+    const r2 = document.createElement("div");
+    r2.className = cls.join(" ");
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    dot.textContent = dotTxt;
+    const mark = document.createElement("span");
+    mark.className = "mark";
+    mark.textContent = markTxt;
+    r2.appendChild(dot); r2.appendChild(mark);
+    blRounds.appendChild(r2);
+  });
+}
 
 document.getElementById("blStart").addEventListener("click", startBlind);
 document.getElementById("blAbort").addEventListener("click", () => {
@@ -871,7 +967,7 @@ document.getElementById("blAbort").addEventListener("click", () => {
   blStatus.textContent = "已放弃本轮（已有结果保留）";
 });
 document.getElementById("blStop").addEventListener("click", () => {
-  stopAll(); blPlayStatus.textContent = "已停止";
+  stopAll(); markPlaying(-1); blPlayStatus.textContent = "已停止";
 });
 document.getElementById("blSubmit").addEventListener("click", submitBlindRound);
 
@@ -904,6 +1000,9 @@ function loadBlindRound() {
     const label = document.createElement("div");
     label.className = "slot-label";
     label.textContent = SLOT_LABELS[i];
+    const eq = document.createElement("div");
+    eq.className = "eq";
+    for (let k = 0; k < 5; k++) eq.appendChild(document.createElement("i"));
     const b = document.createElement("button");
     b.type = "button";
     b.textContent = "▶ 播放 " + SLOT_LABELS[i];
@@ -912,15 +1011,19 @@ function loadBlindRound() {
       try {
         const buf = await getBuffer(id);
         playBufferSource(buf);
+        markPlaying(i);
         blPlayStatus.textContent = "播放中：片段 " + SLOT_LABELS[i] + "（可反复听）";
       } catch (e) {
+        markPlaying(-1);
         blPlayStatus.textContent = "播放失败：" + e.message;
       }
     });
     wrap.appendChild(label);
+    wrap.appendChild(eq);
     wrap.appendChild(b);
     blSlots.appendChild(wrap);
   });
+  renderRounds();
 }
 
 function submitBlindRound() {
@@ -937,6 +1040,7 @@ function submitBlindRound() {
     return;
   }
   stopAll();
+  markPlaying(-1);
   const truthBest = st.order.findIndex(id => id.endsWith("flac"));
   const truthWorst = st.order.findIndex(id => id.endsWith("128"));
   const bestIdx = SLOT_LABELS.indexOf(best.value);
@@ -986,6 +1090,7 @@ function submitBlindRound() {
   blStatus.textContent = "已提交，可继续下一轮";
   document.getElementById("blSubmitStatus").textContent = "";
   persist();
+  renderRounds();
 
   const nextBtn = document.createElement("button");
   nextBtn.type = "button";
@@ -1002,6 +1107,7 @@ function finishBlind() {
   blRoundEl.classList.add("hidden");
   blStatus.textContent = "盲测完成，可在「3 · 结果」查看成绩";
   blProgress.textContent = (blState ? blState.results.length : 0) + " / " + BL_ROUNDS.length;
+  renderRounds();
   renderReport();
   persist();
 }
@@ -1060,10 +1166,22 @@ function drawThresholdChart(canvas, results) {
 
   ctx.font = "11.5px " + style.getPropertyValue("--ink-2");
   ctx.fillStyle = ink2;
-  ctx.strokeStyle = line;
   ctx.lineWidth = 1;
+
+  // 次要刻度:每 3 dB 一条淡线
+  ctx.strokeStyle = line;
+  ctx.globalAlpha = .55;
+  for (let db = -60; db <= -18; db += 3) {
+    if (db % 6 === 0) continue;
+    const y = dy(db);
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // 主刻度:每 6 dB 一条实线 + 标签
   for (let db = -60; db <= -18; db += 6) {
     const y = dy(db);
+    ctx.strokeStyle = line;
     ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
     ctx.fillStyle = ink3;
     ctx.fillText(db + " dB", 12, y + 4);
@@ -1071,6 +1189,7 @@ function drawThresholdChart(canvas, results) {
   }
   TH_FREQS.forEach(f => {
     const x = fx(f);
+    ctx.strokeStyle = line;
     ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
     ctx.fillStyle = ink3;
     ctx.fillText(f >= 1000 ? (f / 1000) + "k" : String(f), x - 11, y1 + 20);

@@ -24,7 +24,10 @@ PORT = 9333
 CASES = [
     ("setup", 'document.querySelector(\'button[data-tab="setup"]\').click()', "校准与音量（默认）"),
     ("threshold", 'document.querySelector(\'button[data-tab="threshold"]\').click()', "频段听阈"),
-    ("blind", 'document.querySelector(\'button[data-tab="blind"]\').click()', "码率盲测"),
+    # 进入盲测并点一下 A 槽播放，验证播放态脉冲 + 轮次进度条
+    ("blind", '(document.querySelector(\'button[data-tab="blind"]\').click(),'
+              'document.getElementById("blStart").click(),'
+              'document.querySelector("#blSlots .slot button").click())', "码率盲测(播放态)"),
     ("report", 'document.querySelector(\'button[data-tab="report"]\').click()', "结果与导出"),
 ]
 
@@ -96,8 +99,12 @@ def main() -> int:
         evaluate(PAGE_JS)
 
         for name, click_js, desc in CASES:
-            evaluate(click_js)
-            time.sleep(0.6)
+            res = evaluate(click_js)
+            exc = res.get("exceptionDetails")
+            if exc:
+                print(f"WARN {name}: eval error: "
+                      f"{exc.get('exception', {}).get('description', exc)}", file=sys.stderr)
+            time.sleep(1.2)
             shot = send("Page.captureScreenshot", {"format": "png"})
             data = base64.b64decode(shot["data"])
             out = OUT / f"{name}.png"
